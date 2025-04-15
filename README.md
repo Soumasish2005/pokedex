@@ -63,6 +63,7 @@ Before you set off on your adventure, make sure you have the following tools in 
 ```
 pokedex/
 ├── public/          # Static assets (Pokéballs, maps, etc.)
+├── screenshots/     # Some screenshots of the website
 ├── src/
 │   ├── assets/      # Pokémon images and other assets
 │   ├── components/  # React components (like Pokédex entries)
