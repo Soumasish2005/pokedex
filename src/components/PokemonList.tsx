@@ -83,9 +83,10 @@ export function PokemonList() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <div className="inset-0 bg-black/30 fixed"></div>
       <div className="flex items-center justify-center gap-3 mb-8">
         <Zap className="w-10 h-10 text-yellow-300 animate-pulse" />
-        <h1 className="text-5xl font-bold text-white text-center" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
+        <h1 className="text-5xl font-bold z-10 text-white text-center" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
           Pokédex
         </h1>
         <Zap className="w-10 h-10 text-yellow-300 animate-pulse" />
