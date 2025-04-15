@@ -1,39 +1,81 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Zap } from 'lucide-react';
 import { Pokemon } from '../types';
 import { PokemonCard } from './PokemonCard';
 import { PokemonLoader } from './PokemonLoader';
 
+// Cache to store fetched Pokemon data
+const pokemonCache = new Map<string, Pokemon>();
+
 export function PokemonList() {
   const [pokemon, setPokemon] = useState<Pokemon[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchPokemon = async () => {
-      try {
-        const response = await fetch('https://pokeapi.co/api/v2/pokemon?limit=151');
-        const data = await response.json();
-        
-        const pokemonDetails = await Promise.all(
-          data.results.map(async (pokemon: { name: string }) => {
-            const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.name}`);
-            return response.json();
-          })
-        );
-        
-        setPokemon(pokemonDetails);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching Pokemon:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchPokemon();
+  const fetchPokemon = useCallback(async (pageNumber: number) => {
+    try {
+      setLoading(true);
+      const limit = 20;
+      const offset = (pageNumber - 1) * limit;
+      
+      const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${limit}&offset=${offset}`);
+      const data = await response.json();
+      
+      // Check if there are more Pokemon to load
+      setHasMore(data.next !== null);
+      
+      const pokemonDetails = await Promise.all(
+        data.results.map(async (pokemon: { name: string }) => {
+          // Check cache first
+          if (pokemonCache.has(pokemon.name)) {
+            return pokemonCache.get(pokemon.name);
+          }
+          
+          const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemon.name}`);
+          const details = await response.json();
+          // Store in cache
+          pokemonCache.set(pokemon.name, details);
+          return details;
+        })
+      );
+      
+      setPokemon(prev => pageNumber === 1 ? pokemonDetails : [...prev, ...pokemonDetails]);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching Pokemon:', error);
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchPokemon(page);
+  }, [page, fetchPokemon]);
+
+  const handleScroll = useCallback(() => {
+    if (
+      window.innerHeight + document.documentElement.scrollTop >=
+      document.documentElement.offsetHeight - 100 &&
+      !loading &&
+      hasMore
+    ) {
+      setPage(prev => prev + 1);
+    }
+  }, [loading, hasMore]);
+
+  useEffect(() => {
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
+
+  useEffect(() => {
+    if (!loading && hasMore && pokemon.length < 100) {
+      setPage(prev => prev + 1);
+    }
+  }, [loading, hasMore, pokemon.length]);
 
   const filteredPokemon = pokemon.filter((p) =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -62,19 +104,17 @@ export function PokemonList() {
         </div>
       </div>
 
-      {loading ? (
-        <PokemonLoader />
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredPokemon.map((p) => (
-            <PokemonCard
-              key={p.id}
-              pokemon={p}
-              onClick={() => navigate(`/pokemon/${p.id}`)}
-            />
-          ))}
-        </div>
-      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {filteredPokemon.map((p) => (
+          <PokemonCard
+            key={p.id}
+            pokemon={p}
+            onClick={() => navigate(`/pokemon/${p.id}`)}
+          />
+        ))}
+      </div>
+
+      {loading && <PokemonLoader />}
     </div>
   );
 }
