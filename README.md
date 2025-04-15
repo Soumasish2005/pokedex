@@ -13,6 +13,22 @@ This project was proudly built as part of **MLH GHW: API Week**, combining the p
 - 🛠️ **Code Quality**: Ensured with ESLint for clean and maintainable code.
 - 🚀 **Blazing Fast**: Developed with Vite for lightning-fast builds and development.
 
+## Website Screenshots 📸
+
+Take a sneak peek at the Pokedex in action:
+
+-  Home Page
+![Home Page](./screenshots/home.png)
+
+-  Pokémon Details
+![Pokémon Details](./screenshots/pokemon_details.png)
+
+-  Search Functionality
+![Search Functionality](./screenshots/search.png)
+
+-  Loader
+![SLoader](./screenshots/loader.png)
+
 ## Prerequisites 🛡️
 
 Before you set off on your adventure, make sure you have the following tools in your Trainer's toolkit:
